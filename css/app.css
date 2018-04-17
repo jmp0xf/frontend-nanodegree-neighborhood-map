@@ -1,0 +1,47 @@
+#map {
+    height: 94vh;
+}
+
+.list-group {
+    max-height: 88vh;
+    overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+    #map {
+        height: 91vh;
+    }
+    .list-group {
+        max-height: 85vh;
+    }
+}
+
+/* 
+Static Collapsible Sidebar
+Ref: https://bootstrapious.com/p/bootstrap-sidebar 
+*/
+
+#sidebar {
+    min-width: 305px;
+    max-width: 305px;
+    min-height: 100vh;
+    -webkit-transition: all 0.5s ease;
+    -moz-transition: all 0.5s ease;
+    -o-transition: all 0.5s ease;
+    transition: all 0.5s ease;
+}
+
+#sidebar.active {
+    margin-left: -305px;
+}
+
+@media (max-width: 768px) {
+    #sidebar {
+        min-width: 240px;
+        max-width: 240px;
+        margin-left: -240px;
+    }
+    #sidebar.active {
+        margin-left: 0;
+    }
+}
