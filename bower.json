@@ -8,5 +8,6 @@
   "main": [],
   "license": "MIT",
   "dependencies": {
+    "knockout": "^3.4.2"
   }
 }
