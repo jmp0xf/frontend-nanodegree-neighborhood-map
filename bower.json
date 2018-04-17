@@ -1,0 +1,12 @@
+{
+  "name": "neighborhood-map",
+  "homepage": "https://github.com/jmp0xf/frontend-nanodegree-neighborhood-map",
+  "authors": [
+    "jmp0xf"
+  ],
+  "description": "",
+  "main": [],
+  "license": "MIT",
+  "dependencies": {
+  }
+}
