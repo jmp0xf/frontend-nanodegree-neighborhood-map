@@ -53,8 +53,8 @@ var ViewModel = function () {
                 if (status == google.maps.places.PlacesServiceStatus.OK) {
                     self.locations.removeAll();
                     results.forEach(function (place) {
+                        place.marker = createMarker(place, map);
                         self.locations.push(place);
-                        createMarker(place, map);
                     });
                 }
             });
@@ -79,7 +79,19 @@ var ViewModel = function () {
         return filteredLocations;
     });
 
-    self.currentLocation = ko.observable();
+    self.selectedLocation = ko.observable();
+    self.selectedPlaceID = ko.pureComputed(function () {
+        if (self.selectedLocation()) {
+            return self.selectedLocation().place_id;
+        } else {
+            return NaN;
+        }
+    });
+
+    self.setLocation = function (location) {
+        self.selectedLocation(location);
+        showLocationInfo(location);
+    }
 
     self.locate = function () {
         // Try HTML5 geolocation.
@@ -99,20 +111,27 @@ var ViewModel = function () {
             handleLocationError(false, infoWindow, map);
         }
     };
+
+    function createMarker(place, map) {
+        var placeLoc = place.geometry.location;
+        var marker = new google.maps.Marker({
+            map: map,
+            position: place.geometry.location
+        });
+        place.marker = marker;
+        google.maps.event.addListener(marker, 'click', function () {
+            showLocationInfo(place);
+        });
+
+        return marker;
+    }
+
+    function showLocationInfo(location) {
+        self.selectedLocation(location);
+        infoWindow.setContent(location.name);
+        infoWindow.open(map, location.marker);
+    }
 };
-
-function createMarker(place, map) {
-    var placeLoc = place.geometry.location;
-    var marker = new google.maps.Marker({
-        map: map,
-        position: place.geometry.location
-    });
-
-    // google.maps.event.addListener(marker, 'click', function () {
-    //     infowindow.setContent(place.name);
-    //     infowindow.open(map, this);
-    // });
-}
 
 function handleLocationError(browserHasGeolocation, infoWindow, map) {
     infoWindow.setPosition(map.getCenter());

@@ -27,7 +27,7 @@
                 </div>
             </div>
             <ul class="list-group list-group-flush mt-2" data-bind="foreach: filteredLocations">
-                <li class="list-group-item" data-bind="text: name"></li>
+                <li class="list-group-item" data-bind="text: name, click: $parent.setLocation, css: {active: place_id==$parent.selectedPlaceID()}"></li>
             </ul>
         </div>
 
