@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>Neighborhood Map</title>
+    <title>Neighborhood Cafe Map</title>
 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -17,21 +17,17 @@
     <div class="wrapper d-flex align-items-stretch bg-dark">
 
         <div id="sidebar">
-            <h2 class="text-light mt-2 mb-3 mx-2">Locations</h2>
+            <h2 class="text-light mt-2 mb-3 mx-2">Cafe Locations</h2>
             <div class="input-group">
-                <input class="form-control ml-1" type="search" placeholder="Location">
+                <input class="form-control ml-1" type="search" placeholder="Location" data-bind="value: keywords, valueUpdate: 'input'">
                 <div class="input-group-append mr-1">
                     <span class="input-group-text">
                         <i class="fas fa-filter"></i> Filter
                     </span>
                 </div>
             </div>
-            <ul class="list-group list-group-flush mt-2">
-                <li class="list-group-item">Cras justo odio</li>
-                <li class="list-group-item active">Dapibus ac facilisis</li>
-                <li class="list-group-item">Morbi leo risus</li>
-                <li class="list-group-item">Porta ac consectetur ac</li>
-                <li class="list-group-item">Vestibulum at eros</li>
+            <ul class="list-group list-group-flush mt-2" data-bind="foreach: filteredLocations">
+                <li class="list-group-item" data-bind="text: name"></li>
             </ul>
         </div>
 
@@ -39,6 +35,9 @@
             <nav class="navbar navbar-dark">
                 <button class="navbar-toggler" type="button" id="sidebarToggle">
                     <span class="navbar-toggler-icon"></span>
+                </button>
+                <button class="navbar-toggler" type="button" id="sidebarToggle" data-bind="click: locate">
+                    <i class="fas fa-location-arrow"></i>
                 </button>
             </nav>
             <div id="map"></div>
@@ -48,7 +47,7 @@
     <script src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
     <script src="bower_components/knockout/dist/knockout.js"></script>
     <script src="js/app.js"></script>
-    <script async defer src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyAegLxPz8H_ADWlHyHHYPMIqkc-BF0jPZM&callback=initMap"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyAegLxPz8H_ADWlHyHHYPMIqkc-BF0jPZM&callback=initMap&libraries=places"></script>
 </body>
 
 </html>
