@@ -17,10 +17,15 @@ var DEFAULT_CENTER_POS = {
 
 // Global Variables
 var infoWindow;
+var map;
 var gmaps = ko.observable();
 
 // Google Map Callback
 function initMap() {
+    map = new google.maps.Map(document.getElementById('map'), {
+        center: DEFAULT_CENTER_POS,
+        zoom: 16
+    });
     gmaps(google.maps);
     infoWindow = new google.maps.InfoWindow();
 }
@@ -34,14 +39,6 @@ var ViewModel = function () {
             return new google.maps.LatLng(self.centerPos());
         }
     });
-    self.map = ko.computed(function () {
-        if (gmaps()) {
-            return new google.maps.Map(document.getElementById('map'), {
-                center: self.center(),
-                zoom: 16
-            });
-        }
-    });
 
     // Update locations state after center pos changed
     ko.computed(function () {
@@ -51,13 +48,13 @@ var ViewModel = function () {
                 radius: NEARBY_SEARCH_RADIUS,
                 type: [NEARBY_SEARCH_TYPE]
             };
-            var service = new google.maps.places.PlacesService(self.map());
+            var service = new google.maps.places.PlacesService(map);
             service.nearbySearch(request, function (results, status) {
                 if (status == google.maps.places.PlacesServiceStatus.OK) {
                     self.locations.removeAll();
                     results.forEach(function (place) {
                         self.locations.push(place);
-                        createMarker(place, self.map());
+                        createMarker(place, map);
                     });
                 }
             });
@@ -66,8 +63,8 @@ var ViewModel = function () {
 
     // Reset map view after center pos changed
     ko.computed(function () {
-        if (self.map()) {
-            self.map().setCenter(self.center());
+        if (gmaps()) {
+            map.setCenter(self.center());
         }
     });
     self.keywords = ko.observable('');
@@ -95,11 +92,11 @@ var ViewModel = function () {
                 self.centerPos(pos);
                 self.keywords('');
             }, function () {
-                handleLocationError(true, infoWindow, self.map());
+                handleLocationError(true, infoWindow, map);
             });
         } else {
             // Browser doesn't support Geolocation
-            handleLocationError(false, infoWindow, self.map());
+            handleLocationError(false, infoWindow, map);
         }
     };
 };
