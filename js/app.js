@@ -95,6 +95,7 @@ var ViewModel = function () {
     self.setLocation = function (location) {
         self.selectedLocation(location);
         showLocationInfo(location);
+        showLocationMarkerAnimation(location);
     }
 
     self.locate = function () {
@@ -124,16 +125,22 @@ var ViewModel = function () {
         });
         place.marker = marker;
         google.maps.event.addListener(marker, 'click', function () {
-            showLocationInfo(place);
+            self.setLocation(place);
         });
 
         return marker;
     }
 
     function showLocationInfo(location) {
-        self.selectedLocation(location);
         infoWindow.setContent(location.name);
         infoWindow.open(map, location.marker);
+    }
+
+    function showLocationMarkerAnimation(location) {
+        location.marker.setAnimation(google.maps.Animation.BOUNCE);
+        setTimeout(function () {
+            location.marker.setAnimation(null);
+        }, 1400);
     }
 };
 
