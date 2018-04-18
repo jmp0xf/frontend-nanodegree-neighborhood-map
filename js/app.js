@@ -70,12 +70,16 @@ var ViewModel = function () {
     self.keywords = ko.observable('');
     self.locations = ko.observableArray([]);
     self.filteredLocations = ko.computed(function () {
-        var filteredLocations = self.locations();
-        if (self.keywords() && self.locations().length > 0) {
-            filteredLocations = ko.utils.arrayFilter(filteredLocations, function (location) {
-                return location.name.trim().toLowerCase().indexOf(self.keywords().trim().toLowerCase()) > -1;
-            });
-        }
+        var filteredLocations = [];
+        self.locations().forEach(function (location) {
+            if (!self.keywords() || location.name.trim().toLowerCase().indexOf(self.keywords().trim().toLowerCase()) > -1) {
+                location.marker.setMap(map);
+                filteredLocations.push(location);
+            } else {
+                location.marker.setMap(null);
+            }
+        });
+
         return filteredLocations;
     });
 
