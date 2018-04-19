@@ -26,9 +26,104 @@ function initMap() {
         center: DEFAULT_CENTER_POS,
         zoom: 16
     });
-    gmaps(google.maps);
     infoWindow = new google.maps.InfoWindow();
+    gmaps(google.maps);
 }
+
+ko.bindingHandlers.mapCenter = {
+    update: function (element, valueAccessor, allBindings, bindingContext) {
+        if (gmaps()) {
+            var center = ko.unwrap(valueAccessor());
+            map.setCenter(center);
+        }
+    }
+};
+
+ko.bindingHandlers.mapMarkers = {
+    update: function (element, valueAccessor, allBindings, bindingContext) {
+        if (gmaps()) {
+            var locations = ko.unwrap(valueAccessor());
+            locations.forEach(function (location) {
+                if (!location.marker) {
+                    location.marker = createMarker(location, map, bindingContext);
+                }
+            });
+        }
+
+        function createMarker(place, map, viewModel) {
+            var placeLoc = place.geometry.location;
+            var marker = new google.maps.Marker({
+                map: map,
+                position: place.geometry.location
+            });
+            google.maps.event.addListener(marker, 'click', function () {
+                viewModel.selectedLocation(place);
+            });
+
+            return marker;
+        }
+    }
+};
+
+ko.bindingHandlers.mapDisplayMarkers = {
+    update: function (element, valueAccessor, allBindings, bindingContext) {
+        if (gmaps()) {
+            var filteredLocations = ko.unwrap(valueAccessor());
+            var locations = bindingContext.locations();
+            locations.forEach(function (location) {
+                if (filteredLocations.some(function (filteredLocation) {
+                        return filteredLocation.place_id === location.place_id;
+                    })) {
+                    if (location.marker) {
+                        location.marker.setMap(map);
+                    }
+                } else {
+                    if (location.marker) {
+                        location.marker.setMap(null);
+                    }
+                }
+            });
+        }
+    }
+};
+
+ko.bindingHandlers.mapSelectMarker = {
+    update: function (element, valueAccessor, allBindings, bindingContext) {
+        if (gmaps()) {
+            var selectedLocation = ko.unwrap(valueAccessor());
+            if (selectedLocation) {
+                showLocationInfo(selectedLocation);
+                showLocationMarkerAnimation(selectedLocation);
+            }
+        }
+
+        function showLocationInfo(location) {
+            infoWindow.setContent(location.name);
+            infoWindow.open(map, location.marker);
+        }
+
+        function showLocationMarkerAnimation(location) {
+            location.marker.setAnimation(google.maps.Animation.BOUNCE);
+            setTimeout(function () {
+                location.marker.setAnimation(null);
+            }, 1400);
+        }
+    }
+};
+
+ko.bindingHandlers.handleLocationError = {
+    update: function (element, valueAccessor, allBindings, bindingContext) {
+        if (gmaps()) {
+            var locationError = ko.unwrap(valueAccessor());
+            if (locationError) {
+                infoWindow.setPosition(map.getCenter());
+                infoWindow.setContent(locationError);
+                infoWindow.open(map);
+            }
+        }
+    }
+};
+
 
 // Knockout ViewModel
 var ViewModel = function () {
@@ -40,6 +135,7 @@ var ViewModel = function () {
         }
     });
 
+    self.locations = ko.observableArray([]);
     // Update locations state after center pos changed
     ko.computed(function () {
         if (gmaps()) {
@@ -53,7 +149,6 @@ var ViewModel = function () {
                 if (status == google.maps.places.PlacesServiceStatus.OK) {
                     self.locations.removeAll();
                     results.forEach(function (place) {
-                        place.marker = createMarker(place, map);
                         self.locations.push(place);
                     });
                 }
@@ -61,25 +156,14 @@ var ViewModel = function () {
         }
     });
 
-    // Reset map view after center pos changed
-    ko.computed(function () {
-        if (gmaps()) {
-            map.setCenter(self.center());
-        }
-    });
     self.keywords = ko.observable('');
-    self.locations = ko.observableArray([]);
     self.filteredLocations = ko.computed(function () {
-        var filteredLocations = [];
-        self.locations().forEach(function (location) {
-            if (!self.keywords() || location.name.trim().toLowerCase().indexOf(self.keywords().trim().toLowerCase()) > -1) {
-                location.marker.setMap(map);
-                filteredLocations.push(location);
-            } else {
-                location.marker.setMap(null);
-            }
-        });
-
+        var filteredLocations = self.locations();
+        if (self.keywords() && self.locations().length > 0) {
+            filteredLocations = ko.utils.arrayFilter(filteredLocations, function (location) {
+                return location.name.trim().toLowerCase().indexOf(self.keywords().trim().toLowerCase()) > -1;
+            });
+        }
         return filteredLocations;
     });
 
@@ -92,12 +176,7 @@ var ViewModel = function () {
         }
     });
 
-    self.setLocation = function (location) {
-        self.selectedLocation(location);
-        showLocationInfo(location);
-        showLocationMarkerAnimation(location);
-    }
-
+    self.locationError = ko.observable('');
     self.locate = function () {
         // Try HTML5 geolocation.
         if (navigator.geolocation) {
@@ -109,47 +188,12 @@ var ViewModel = function () {
                 self.centerPos(pos);
                 self.keywords('');
             }, function () {
-                handleLocationError(true, infoWindow, map);
+                self.locationError('Error: The Geolocation service failed.');
             });
         } else {
-            // Browser doesn't support Geolocation
-            handleLocationError(false, infoWindow, map);
+            self.locationError('Error: Your browser doesn\'t support geolocation.');
         }
     };
-
-    function createMarker(place, map) {
-        var placeLoc = place.geometry.location;
-        var marker = new google.maps.Marker({
-            map: map,
-            position: place.geometry.location
-        });
-        place.marker = marker;
-        google.maps.event.addListener(marker, 'click', function () {
-            self.setLocation(place);
-        });
-
-        return marker;
-    }
-
-    function showLocationInfo(location) {
-        infoWindow.setContent(location.name);
-        infoWindow.open(map, location.marker);
-    }
-
-    function showLocationMarkerAnimation(location) {
-        location.marker.setAnimation(google.maps.Animation.BOUNCE);
-        setTimeout(function () {
-            location.marker.setAnimation(null);
-        }, 1400);
-    }
 };
-
-function handleLocationError(browserHasGeolocation, infoWindow, map) {
-    infoWindow.setPosition(map.getCenter());
-    infoWindow.setContent(browserHasGeolocation ?
-        'Error: The Geolocation service failed.' :
-        'Error: Your browser doesn\'t support geolocation.');
-    infoWindow.open(map);
-}
 
 ko.applyBindings(new ViewModel());
