@@ -8,8 +8,9 @@ $(document).ready(function () {
 });
 
 // Contants
-var NEARBY_SEARCH_RADIUS = '500';
-var NEARBY_SEARCH_TYPE = 'cafe';
+var NEARBY_SEARCH_RADIUS = 500;
+var NEARBY_SEARCH_TERM = 'cafe';
+var RESULT_LIMIT = 20;
 var DEFAULT_CENTER_POS = {
     lat: 40.7413549,
     lng: -73.9980244
@@ -19,6 +20,9 @@ var DEFAULT_CENTER_POS = {
 var infoWindow;
 var map;
 var markers = [];
+var yelp = new Yelp({
+    api_key: 'tjLbjYy6ze0UvhOmhbwN931eK1d52o14r0ZYo5hAZuriJfzhKpZp4K07kEcNNBu4B-SXtBN7X62crsE0MyTkbmd4iPBn2WHzA0S2EhzBZGrjeIdhOAzi5kShhGrYWnYx'
+});
 var gmaps = ko.observable();
 
 // Google Map Callback
@@ -29,6 +33,16 @@ function initMap() {
     });
     infoWindow = new google.maps.InfoWindow();
     gmaps(google.maps);
+}
+
+var Location = function (data) {
+    this.name = data.name;
+    this.id = data.id;
+    this.phone = data.display_phone;
+    this.lat = data.coordinates.latitude;
+    this.lng = data.coordinates.longitude;
+    this.rating = data.rating;
+    this.image_url = data.image_url;
 }
 
 ko.bindingHandlers.mapCenter = {
@@ -54,14 +68,16 @@ ko.bindingHandlers.mapMarkers = {
             });
         }
 
-        function createMarker(place, map, viewModel) {
-            var placeLoc = place.geometry.location;
+        function createMarker(location, map, viewModel) {
             var marker = new google.maps.Marker({
                 map: map,
-                position: place.geometry.location
+                position: {
+                    lat: location.lat,
+                    lng: location.lng
+                }
             });
             google.maps.event.addListener(marker, 'click', function () {
-                viewModel.selectedLocation(place);
+                viewModel.selectedLocation(location);
             });
 
             return marker;
@@ -76,7 +92,7 @@ ko.bindingHandlers.mapDisplayMarkers = {
             var locations = bindingContext.locations();
             locations.forEach(function (location) {
                 if (filteredLocations.some(function (filteredLocation) {
-                        return filteredLocation.place_id === location.place_id;
+                        return filteredLocation.id === location.id;
                     })) {
                     if (location.marker) {
                         location.marker.setMap(map);
@@ -102,20 +118,18 @@ ko.bindingHandlers.mapSelectMarker = {
         }
 
         function showLocationInfo(location) {
-            var innerHTML = '<div>';
+            var innerHTML = '<div class="noscrollbar">';
             if (location.name) {
                 innerHTML += '<strong>' + location.name + '</strong>';
             }
-            if (location.opening_hours) {
-                if (location.opening_hours.open_now !== undefined) {
-                    innerHTML += '<br><sub>' + (location.opening_hours.open_now ? 'Opening Now' : 'Closed Now') + '</sub>';
-                }
+            if (location.rating) {
+                innerHTML += '<br><sup> Ratings: ' + location.rating + '/5 </sup>';
             }
-            if (location.photos) {
-                innerHTML += '<br><br><img src="' + location.photos[0].getUrl({
-                    maxHeight: 100,
-                    maxWidth: 200
-                }) + '">';
+            if (location.phone) {
+                innerHTML += '<br>' + location.phone;
+            }
+            if (location.image_url) {
+                innerHTML += '<br><br><img class="info-img" src="' + location.image_url + '">';
             }
             innerHTML += '</div>';
             infoWindow.setContent(innerHTML);
@@ -178,26 +192,32 @@ var ViewModel = function () {
     });
     // Update locations state after center pos changed
     ko.computed(function () {
-        if (gmaps()) {
-            var request = {
-                location: self.center(),
+        yelp.search({
+                latitude: self.centerPos().lat,
+                longitude: self.centerPos().lng,
                 radius: NEARBY_SEARCH_RADIUS,
-                type: [NEARBY_SEARCH_TYPE]
-            };
-            var service = new google.maps.places.PlacesService(map);
-            service.nearbySearch(request, function (results, status) {
-                if (status === google.maps.places.PlacesServiceStatus.OK) {
-                    self.locations.removeAll();
-                    results.forEach(function (place) {
-                        self.locations.push(place);
-                    });
-                } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
-                    self.errorMessage('Warning: No nearby places found.');
+                term: NEARBY_SEARCH_TERM,
+                limit: RESULT_LIMIT
+            })
+            .then(function (data) {
+                if (data && data.businesses) {
+                    if (data.businesses.length > 0) {
+                        data.businesses.forEach(function (business) {
+                            if (!business.is_closed) {
+                                self.locations.push(new Location(business));
+                            }
+                        });
+                    } else {
+                        self.locations.removeAll();
+                        self.errorMessage('Sorry, no nearby ' + NEARBY_SEARCH_TERM + ' found.');
+                    }
                 } else {
-                    self.errorMessage('Error: Searching nearby places failed.');
+                    self.errorMessage("Error: no valid location.");
                 }
+            })
+            .catch(function (err) {
+                self.errorMessage(err);
             });
-        }
     });
 
     self.keywords = ko.observable('');
@@ -212,9 +232,9 @@ var ViewModel = function () {
     });
 
     self.selectedLocation = ko.observable();
-    self.selectedPlaceID = ko.pureComputed(function () {
+    self.selectedID = ko.pureComputed(function () {
         if (self.selectedLocation()) {
-            return self.selectedLocation().place_id;
+            return self.selectedLocation().id;
         } else {
             return NaN;
         }
