@@ -102,7 +102,23 @@ ko.bindingHandlers.mapSelectMarker = {
         }
 
         function showLocationInfo(location) {
-            infoWindow.setContent(location.name);
+            var innerHTML = '<div>';
+            if (location.name) {
+                innerHTML += '<strong>' + location.name + '</strong>';
+            }
+            if (location.opening_hours) {
+                if (location.opening_hours.open_now !== undefined) {
+                    innerHTML += '<br><sub>' + (location.opening_hours.open_now ? 'Opening Now' : 'Closed Now') + '</sub>';
+                }
+            }
+            if (location.photos) {
+                innerHTML += '<br><br><img src="' + location.photos[0].getUrl({
+                    maxHeight: 100,
+                    maxWidth: 200
+                }) + '">';
+            }
+            innerHTML += '</div>';
+            infoWindow.setContent(innerHTML);
             infoWindow.open(map, location.marker);
         }
 
