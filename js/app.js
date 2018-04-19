@@ -18,6 +18,7 @@ var DEFAULT_CENTER_POS = {
 // Global Variables
 var infoWindow;
 var map;
+var markers = [];
 var gmaps = ko.observable();
 
 // Google Map Callback
@@ -43,10 +44,13 @@ ko.bindingHandlers.mapMarkers = {
     update: function (element, valueAccessor, allBindings, bindingContext) {
         if (gmaps()) {
             var locations = ko.unwrap(valueAccessor());
+            markers.forEach(function (marker) {
+                marker.setMap(null);
+            });
+            markers.lenghth = 0;
             locations.forEach(function (location) {
-                if (!location.marker) {
-                    location.marker = createMarker(location, map, bindingContext);
-                }
+                location.marker = createMarker(location, map, bindingContext);
+                markers.push(location.marker);
             });
         }
 
@@ -135,7 +139,9 @@ var ViewModel = function () {
         }
     });
 
-    self.locations = ko.observableArray([]);
+    self.locations = ko.observableArray([]).extend({
+        deferred: true
+    });
     // Update locations state after center pos changed
     ko.computed(function () {
         if (gmaps()) {
