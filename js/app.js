@@ -115,15 +115,31 @@ ko.bindingHandlers.mapSelectMarker = {
     }
 };
 
-ko.bindingHandlers.handleLocationError = {
-    update: function (element, valueAccessor, allBindings, bindingContext) {
-        if (gmaps()) {
-            var locationError = ko.unwrap(valueAccessor());
-            if (locationError) {
-                infoWindow.setPosition(map.getCenter());
-                infoWindow.setContent(locationError);
-                infoWindow.open(map);
+/**
+ * Binds error message to a dismissable alert box
+ * Ref: https://bthurley.wordpress.com/2013/10/08/a-first-knockout-custom-binding-to-display-twitter-bootstrap-alerts/
+ */
+ko.bindingHandlers.alert = {
+    update: function (element, valueAccessor, allBindingsAccessor, bindingContext) {
+        var errorMessage = ko.unwrap(valueAccessor());
+        if (errorMessage) {
+            var type = allBindingsAccessor().type;
+
+            var alertClass = "alert-danger";
+            if (type === "info") {
+                alertClass = "alert-info";
+            } else if (type === "warning") {
+                alertClass = "alert-warning";
+            } else if (type === "success") {
+                alertClass = "alert-success";
             }
+
+            element.innerHTML = '';
+            var alertDiv = document.createElement("div");
+            alertDiv.innerHTML = errorMessage + "<button type=\"button\" data-dismiss=\"alert\" class=\"close\"><span aria-hidden=\"true\">&times;</span></button>";
+            alertDiv.className = "alert " + alertClass + " alert-dismissable" + " fade show mb-1 mx-2";
+
+            element.appendChild(alertDiv);
         }
     }
 };
@@ -138,6 +154,8 @@ var ViewModel = function () {
             return new google.maps.LatLng(self.centerPos());
         }
     });
+
+    self.errorMessage = ko.observable('');
 
     self.locations = ko.observableArray([]).extend({
         deferred: true
@@ -182,7 +200,6 @@ var ViewModel = function () {
         }
     });
 
-    self.locationError = ko.observable('');
     self.locate = function () {
         // Try HTML5 geolocation.
         if (navigator.geolocation) {
@@ -194,10 +211,10 @@ var ViewModel = function () {
                 self.centerPos(pos);
                 self.keywords('');
             }, function () {
-                self.locationError('Error: The Geolocation service failed.');
+                self.errorMessage('Error: The Geolocation service failed.');
             });
         } else {
-            self.locationError('Error: Your browser doesn\'t support geolocation.');
+            self.errorMessage('Error: Your browser doesn\'t support geolocation.');
         }
     };
 };

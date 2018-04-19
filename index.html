@@ -40,6 +40,7 @@
                     <i class="fas fa-location-arrow"></i>
                 </button>
             </nav>
+            <div data-bind="alert: errorMessage, type: 'error'"></div>
             <div id="map" data-bind="mapCenter: center, mapMarkers: locations, mapDisplayMarkers: filteredLocations, mapSelectMarker: selectedLocation, handleLocationError: locationError"></div>
         </div>
     </div>
