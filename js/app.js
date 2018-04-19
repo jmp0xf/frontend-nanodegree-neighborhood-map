@@ -185,6 +185,8 @@ var ViewModel = function () {
         }
     });
 
+    self.loading = ko.observable(false);
+
     self.errorMessage = ko.observable('');
 
     self.locations = ko.observableArray([]).extend({
@@ -192,6 +194,7 @@ var ViewModel = function () {
     });
     // Update locations state after center pos changed
     ko.computed(function () {
+        self.loading(true);
         yelp.search({
                 latitude: self.centerPos().lat,
                 longitude: self.centerPos().lng,
@@ -200,6 +203,7 @@ var ViewModel = function () {
                 limit: RESULT_LIMIT
             })
             .then(function (data) {
+                self.loading(false);
                 if (data && data.businesses) {
                     if (data.businesses.length > 0) {
                         data.businesses.forEach(function (business) {
@@ -216,6 +220,7 @@ var ViewModel = function () {
                 }
             })
             .catch(function (err) {
+                self.loading(false);
                 self.errorMessage(err);
             });
     });
