@@ -170,11 +170,15 @@ var ViewModel = function () {
             };
             var service = new google.maps.places.PlacesService(map);
             service.nearbySearch(request, function (results, status) {
-                if (status == google.maps.places.PlacesServiceStatus.OK) {
+                if (status === google.maps.places.PlacesServiceStatus.OK) {
                     self.locations.removeAll();
                     results.forEach(function (place) {
                         self.locations.push(place);
                     });
+                } else if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+                    self.errorMessage('Warning: No nearby places found.');
+                } else {
+                    self.errorMessage('Error: Searching nearby places failed.');
                 }
             });
         }
