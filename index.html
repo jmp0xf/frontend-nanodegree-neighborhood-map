@@ -24,7 +24,7 @@
 
     <div class="wrapper d-flex align-items-stretch bg-dark">
 
-        <div id="sidebar">
+        <div id ="sidebar" data-bind="css: {active: sidebarIsActive()}">
             <h2 class="text-light mt-2 mb-3 mx-2">Cafe Locations</h2>
             <div class="input-group">
                 <input class="form-control ml-1" type="search" data-bind="value: keywords, valueUpdate: 'input', attr: { placeholder: loading()?'Loading Locations...':'Location' }">
@@ -42,10 +42,10 @@
 
         <div class="content container-fluid m-0 p-0">
             <nav class="navbar navbar-dark">
-                <button class="navbar-toggler" type="button" id="sidebarToggle">
+                <button class="navbar-toggler" type="button" data-bind="click: toggleSidebar">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <button class="navbar-toggler" type="button" id="sidebarToggle" data-bind="click: locate">
+                <button class="navbar-toggler" type="button" data-bind="click: locate">
                     <i class="fas fa-location-arrow"></i>
                 </button>
             </nav>

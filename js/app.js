@@ -1,12 +1,5 @@
 "use strict";
 
-// Sidebar Toggle Script
-$(document).ready(function () {
-    $('#sidebarToggle').on('click', function () {
-        $('#sidebar').toggleClass('active');
-    });
-});
-
 // Contants
 var NEARBY_SEARCH_RADIUS = 500;
 var NEARBY_SEARCH_TERM = 'cafe';
@@ -185,6 +178,12 @@ ko.bindingHandlers.alert = {
 // Knockout ViewModel
 var ViewModel = function () {
     var self = this;
+    // Sidebar toggle
+    self.sidebarIsActive = ko.observable(false);
+    self.toggleSidebar = function () {
+        self.sidebarIsActive(!self.sidebarIsActive());
+    };
+
     ko.computed(function () {
         if (gmap() && typeof gmap() === 'function') {
             try {
