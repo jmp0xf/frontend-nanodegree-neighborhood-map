@@ -18,25 +18,26 @@ var DEFAULT_CENTER_POS = {
 
 // Global Variables
 var infoWindow;
-var map;
 var markers = [];
 var yelp = new Yelp({
     api_key: 'tjLbjYy6ze0UvhOmhbwN931eK1d52o14r0ZYo5hAZuriJfzhKpZp4K07kEcNNBu4B-SXtBN7X62crsE0MyTkbmd4iPBn2WHzA0S2EhzBZGrjeIdhOAzi5kShhGrYWnYx'
 });
-var gmaps = ko.observable();
+var gmap = ko.observable();
 
 // Google Map Callback
 function initMap() {
-    map = new google.maps.Map(document.getElementById('map'), {
+    var map = new google.maps.Map(document.getElementById('map'), {
         center: DEFAULT_CENTER_POS,
         zoom: 16
     });
     infoWindow = new google.maps.InfoWindow();
-    gmaps(google.maps);
+    gmap(function () {
+        return map;
+    });
 }
 // Google Map Error Handler
 var mapErrorHandler = function () {
-    gmaps(function () {
+    gmap(function () {
         throw new Error('Oops, loading Google map failed.');
     });
 };
@@ -53,23 +54,23 @@ var Location = function (data) {
 
 ko.bindingHandlers.mapCenter = {
     update: function (element, valueAccessor, allBindings, bindingContext) {
-        if (gmaps()) {
+        if (gmap()) {
             var center = ko.unwrap(valueAccessor());
-            map.setCenter(center);
+                gmap()().setCenter(center);
         }
     }
 };
 
 ko.bindingHandlers.mapMarkers = {
     update: function (element, valueAccessor, allBindings, bindingContext) {
-        if (gmaps()) {
+        if (gmap()) {
             var locations = ko.unwrap(valueAccessor());
             markers.forEach(function (marker) {
                 marker.setMap(null);
             });
             markers.lenghth = 0;
             locations.forEach(function (location) {
-                location.marker = createMarker(location, map, bindingContext);
+                location.marker = createMarker(location, gmap()(), bindingContext);
                 markers.push(location.marker);
             });
         }
@@ -93,7 +94,7 @@ ko.bindingHandlers.mapMarkers = {
 
 ko.bindingHandlers.mapDisplayMarkers = {
     update: function (element, valueAccessor, allBindings, bindingContext) {
-        if (gmaps()) {
+        if (gmap()) {
             var filteredLocations = ko.unwrap(valueAccessor());
             var locations = bindingContext.locations();
             locations.forEach(function (location) {
@@ -101,7 +102,7 @@ ko.bindingHandlers.mapDisplayMarkers = {
                         return filteredLocation.id === location.id;
                     })) {
                     if (location.marker) {
-                        location.marker.setMap(map);
+                        location.marker.setMap(gmap()());
                     }
                 } else {
                     if (location.marker) {
@@ -115,15 +116,15 @@ ko.bindingHandlers.mapDisplayMarkers = {
 
 ko.bindingHandlers.mapSelectMarker = {
     update: function (element, valueAccessor, allBindings, bindingContext) {
-        if (gmaps()) {
+        if (gmap()) {
             var selectedLocation = ko.unwrap(valueAccessor());
             if (selectedLocation) {
-                showLocationInfo(selectedLocation);
+                showLocationInfo(selectedLocation, gmap()());
                 showLocationMarkerAnimation(selectedLocation);
             }
         }
 
-        function showLocationInfo(location) {
+        function showLocationInfo(location, map) {
             var innerHTML = '<div class="noscrollbar">';
             if (location.name) {
                 innerHTML += '<strong>' + location.name + '</strong>';
@@ -185,9 +186,9 @@ ko.bindingHandlers.alert = {
 var ViewModel = function () {
     var self = this;
     ko.computed(function () {
-        if (gmaps() && typeof gmaps() === 'function') {
+        if (gmap() && typeof gmap() === 'function') {
             try {
-                gmaps()();
+                gmap()();
             } catch (e) {
                 self.errorMessage(e.message);
             }
@@ -195,7 +196,7 @@ var ViewModel = function () {
     });
     self.centerPos = ko.observable(DEFAULT_CENTER_POS);
     self.center = ko.computed(function () {
-        if (gmaps()) {
+        if (gmap()) {
             return new google.maps.LatLng(self.centerPos());
         }
     });
