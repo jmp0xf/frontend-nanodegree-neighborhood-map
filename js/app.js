@@ -49,7 +49,7 @@ ko.bindingHandlers.mapCenter = {
     update: function (element, valueAccessor, allBindings, bindingContext) {
         if (gmap()) {
             var center = ko.unwrap(valueAccessor());
-                gmap()().setCenter(center);
+            gmap()().setCenter(center);
         }
     }
 };
