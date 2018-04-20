@@ -14,7 +14,7 @@
 </head>
 
 <body>
-    <div class="showbox" data-bind="css: {hidden: !loading()}">
+    <div class="showbox" data-bind="css: {hidden: !isLoading()}">
         <div class="loader">
             <svg class="circular" viewBox="25 25 50 50">
                 <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-width="2" stroke-miterlimit="10" />
@@ -24,10 +24,10 @@
 
     <div class="wrapper d-flex align-items-stretch bg-dark">
 
-        <div id ="sidebar" data-bind="css: {active: sidebarIsActive()}">
+        <div id ="sidebar" data-bind="css: {active: isSidebarActive()}">
             <h2 class="text-light mt-2 mb-3 mx-2">Cafe Locations</h2>
             <div class="input-group">
-                <input class="form-control ml-1" type="search" data-bind="value: keywords, valueUpdate: 'input', attr: { placeholder: loading()?'Loading Locations...':'Location' }">
+                <input class="form-control ml-1" type="search" data-bind="value: keywords, valueUpdate: 'input', attr: { placeholder: isLoading()?'Loading Locations...':'Location' }">
                 <div class="input-group-append mr-1">
                     <span class="input-group-text">
                         <i class="fas fa-filter"></i> Filter

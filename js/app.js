@@ -179,9 +179,9 @@ ko.bindingHandlers.alert = {
 var ViewModel = function () {
     var self = this;
     // Sidebar toggle
-    self.sidebarIsActive = ko.observable(false);
+    self.isSidebarActive = ko.observable(false);
     self.toggleSidebar = function () {
-        self.sidebarIsActive(!self.sidebarIsActive());
+        self.isSidebarActive(!self.isSidebarActive());
     };
 
     ko.computed(function () {
@@ -200,7 +200,7 @@ var ViewModel = function () {
         }
     });
 
-    self.loading = ko.observable(false);
+    self.isLoading = ko.observable(false);
 
     self.errorMessage = ko.observable('');
 
@@ -209,7 +209,7 @@ var ViewModel = function () {
     });
     // Update locations state after center pos changed
     ko.computed(function () {
-        self.loading(true);
+        self.isLoading(true);
         yelp.search({
                 latitude: self.centerPos().lat,
                 longitude: self.centerPos().lng,
@@ -218,7 +218,7 @@ var ViewModel = function () {
                 limit: RESULT_LIMIT
             })
             .then(function (data) {
-                self.loading(false);
+                self.isLoading(false);
                 if (data && data.businesses) {
                     if (data.businesses.length > 0) {
                         data.businesses.forEach(function (business) {
@@ -235,7 +235,7 @@ var ViewModel = function () {
                 }
             })
             .catch(function (err) {
-                self.loading(false);
+                self.isLoading(false);
                 self.errorMessage(err);
             });
     });
