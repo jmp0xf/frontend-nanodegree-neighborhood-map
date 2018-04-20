@@ -34,6 +34,12 @@ function initMap() {
     infoWindow = new google.maps.InfoWindow();
     gmaps(google.maps);
 }
+// Google Map Error Handler
+var mapErrorHandler = function () {
+    gmaps(function () {
+        throw new Error('Oops, loading Google map failed.');
+    });
+};
 
 var Location = function (data) {
     this.name = data.name;
@@ -178,6 +184,15 @@ ko.bindingHandlers.alert = {
 // Knockout ViewModel
 var ViewModel = function () {
     var self = this;
+    ko.computed(function () {
+        if (gmaps() && typeof gmaps() === 'function') {
+            try {
+                gmaps()();
+            } catch (e) {
+                self.errorMessage(e.message);
+            }
+        }
+    });
     self.centerPos = ko.observable(DEFAULT_CENTER_POS);
     self.center = ko.computed(function () {
         if (gmaps()) {
