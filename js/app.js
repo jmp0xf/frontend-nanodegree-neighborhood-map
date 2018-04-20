@@ -102,11 +102,11 @@ ko.bindingHandlers.mapDisplayMarkers = {
                         return filteredLocation.id === location.id;
                     })) {
                     if (location.marker) {
-                        location.marker.setMap(gmap()());
+                        location.marker.setVisible(true);
                     }
                 } else {
                     if (location.marker) {
-                        location.marker.setMap(null);
+                        location.marker.setVisible(false);
                     }
                 }
             });
