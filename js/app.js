@@ -1,25 +1,25 @@
 "use strict";
 
 // Contants
-var NEARBY_SEARCH_RADIUS = 500;
-var NEARBY_SEARCH_TERM = 'cafe';
-var RESULT_LIMIT = 20;
-var DEFAULT_CENTER_POS = {
+const NEARBY_SEARCH_RADIUS = 500;
+const NEARBY_SEARCH_TERM = 'cafe';
+const RESULT_LIMIT = 20;
+const DEFAULT_CENTER_POS = {
     lat: 40.7413549,
     lng: -73.9980244
 };
 
 // Global Variables
-var infoWindow;
-var markers = [];
-var yelp = new Yelp({
+let infoWindow;
+let markers = [];
+let yelp = new Yelp({
     api_key: 'tjLbjYy6ze0UvhOmhbwN931eK1d52o14r0ZYo5hAZuriJfzhKpZp4K07kEcNNBu4B-SXtBN7X62crsE0MyTkbmd4iPBn2WHzA0S2EhzBZGrjeIdhOAzi5kShhGrYWnYx'
 });
-var gmap = ko.observable();
+let gmap = ko.observable();
 
 // Google Map Callback
 function initMap() {
-    var map = new google.maps.Map(document.getElementById('map'), {
+    let map = new google.maps.Map(document.getElementById('map'), {
         center: DEFAULT_CENTER_POS,
         zoom: 16
     });
@@ -29,13 +29,13 @@ function initMap() {
     });
 }
 // Google Map Error Handler
-var mapErrorHandler = function () {
+let mapErrorHandler = function () {
     gmap(function () {
         throw new Error('Oops, loading Google map failed.');
     });
 };
 
-var Location = function (data) {
+let Location = function (data) {
     this.name = data.name;
     this.id = data.id;
     this.phone = data.display_phone;
@@ -48,7 +48,7 @@ var Location = function (data) {
 ko.bindingHandlers.mapCenter = {
     update: function (element, valueAccessor, allBindings, bindingContext) {
         if (gmap()) {
-            var center = ko.unwrap(valueAccessor());
+            let center = ko.unwrap(valueAccessor());
             gmap()().setCenter(center);
         }
     }
@@ -57,7 +57,7 @@ ko.bindingHandlers.mapCenter = {
 ko.bindingHandlers.mapMarkers = {
     update: function (element, valueAccessor, allBindings, bindingContext) {
         if (gmap()) {
-            var locations = ko.unwrap(valueAccessor());
+            let locations = ko.unwrap(valueAccessor());
             markers.forEach(function (marker) {
                 marker.setMap(null);
             });
@@ -69,7 +69,7 @@ ko.bindingHandlers.mapMarkers = {
         }
 
         function createMarker(location, map, viewModel) {
-            var marker = new google.maps.Marker({
+            let marker = new google.maps.Marker({
                 map: map,
                 position: {
                     lat: location.lat,
@@ -88,8 +88,8 @@ ko.bindingHandlers.mapMarkers = {
 ko.bindingHandlers.mapDisplayMarkers = {
     update: function (element, valueAccessor, allBindings, bindingContext) {
         if (gmap()) {
-            var filteredLocations = ko.unwrap(valueAccessor());
-            var locations = bindingContext.locations();
+            let filteredLocations = ko.unwrap(valueAccessor());
+            let locations = bindingContext.locations();
             locations.forEach(function (location) {
                 if (filteredLocations.some(function (filteredLocation) {
                         return filteredLocation.id === location.id;
@@ -110,7 +110,7 @@ ko.bindingHandlers.mapDisplayMarkers = {
 ko.bindingHandlers.mapSelectMarker = {
     update: function (element, valueAccessor, allBindings, bindingContext) {
         if (gmap()) {
-            var selectedLocation = ko.unwrap(valueAccessor());
+            let selectedLocation = ko.unwrap(valueAccessor());
             if (selectedLocation) {
                 showLocationInfo(selectedLocation, gmap()());
                 showLocationMarkerAnimation(selectedLocation);
@@ -118,7 +118,7 @@ ko.bindingHandlers.mapSelectMarker = {
         }
 
         function showLocationInfo(location, map) {
-            var innerHTML = '<div class="noscrollbar">';
+            let innerHTML = '<div class="noscrollbar">';
             if (location.name) {
                 innerHTML += '<strong>' + location.name + '</strong>';
             }
@@ -151,11 +151,11 @@ ko.bindingHandlers.mapSelectMarker = {
  */
 ko.bindingHandlers.alert = {
     update: function (element, valueAccessor, allBindingsAccessor, bindingContext) {
-        var errorMessage = ko.unwrap(valueAccessor());
+        let errorMessage = ko.unwrap(valueAccessor());
         if (errorMessage) {
-            var type = allBindingsAccessor().type;
+            let type = allBindingsAccessor().type;
 
-            var alertClass = "alert-danger";
+            let alertClass = "alert-danger";
             if (type === "info") {
                 alertClass = "alert-info";
             } else if (type === "warning") {
@@ -165,7 +165,7 @@ ko.bindingHandlers.alert = {
             }
 
             element.innerHTML = '';
-            var alertDiv = document.createElement("div");
+            let alertDiv = document.createElement("div");
             alertDiv.innerHTML = errorMessage + "<button type=\"button\" data-dismiss=\"alert\" class=\"close\"><span aria-hidden=\"true\">&times;</span></button>";
             alertDiv.className = "alert " + alertClass + " alert-dismissable" + " fade show mb-1 mx-2";
 
@@ -176,8 +176,8 @@ ko.bindingHandlers.alert = {
 
 
 // Knockout ViewModel
-var ViewModel = function () {
-    var self = this;
+let ViewModel = function () {
+    let self = this;
     // Sidebar toggle
     self.isSidebarActive = ko.observable(false);
     self.toggleSidebar = function () {
@@ -242,7 +242,7 @@ var ViewModel = function () {
 
     self.keywords = ko.observable('');
     self.filteredLocations = ko.computed(function () {
-        var filteredLocations = self.locations();
+        let filteredLocations = self.locations();
         if (self.keywords() && self.locations().length > 0) {
             filteredLocations = ko.utils.arrayFilter(filteredLocations, function (location) {
                 return location.name.trim().toLowerCase().indexOf(self.keywords().trim().toLowerCase()) > -1;
@@ -264,7 +264,7 @@ var ViewModel = function () {
         // Try HTML5 geolocation.
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function (position) {
-                var pos = {
+                let pos = {
                     lat: position.coords.latitude,
                     lng: position.coords.longitude
                 };
